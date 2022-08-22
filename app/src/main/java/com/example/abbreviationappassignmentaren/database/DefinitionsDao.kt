@@ -6,19 +6,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.abbreviationappassignmentaren.models.DefinitionsItemModel
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DefinitionsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDefinitions(definitionsItemModel: DefinitionsItemModel)
-
-    @Query("SELECT * FROM Definitions ORDER BY sf ASC")
-    fun getAllDefinitions() : LiveData<List<DefinitionsItemModel>>
+    suspend fun insertDefinitions(definitionsEntity: DefinitionsEntity)
 
     @Query("SELECT * FROM Definitions WHERE sf LIKE :searchTerm")
-    fun getSearchResult(searchTerm: String): LiveData<DefinitionsItemModel>
+    fun getSearchResult(searchTerm: String): Flow<List<DefinitionsEntity>>
 
-    @Query("SELECT EXISTS(SELECT * FROM Definitions WHERE sf = :searchTerm)")
-    suspend fun checkIfExists(searchTerm: String): Boolean
 }

@@ -1,43 +1,21 @@
 package com.example.abbreviationappassignmentaren.database
 
 import androidx.room.TypeConverter
+import com.example.abbreviationappassignmentaren.models.DefinitionsModel
 import com.example.abbreviationappassignmentaren.models.LfModel
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class Converters {
 
-    @TypeConverter
-    fun fromLfs(lfs: List<LfModel>): String{
-        var str = ""
-        for (i in lfs.indices){
-            str += "${lfs[i].lf};"
-        }
-        return str
-    }
+    var gson = Gson()
 
     @TypeConverter
-    fun toLfModel(lfs: String): List<LfModel> {
-        var list = mutableListOf<LfModel>()
-        var str = ""
-        for (i in lfs.indices){
-            if (!lfs[i].equals(";")){
-                str += lfs[i]
-            } else {
-                list.add(LfModel(str))
-                str = ""
-            }
-        }
-        return list
-    }
+    fun abbreviationsToString(abbreviations: DefinitionsModel): String = gson.toJson(abbreviations)
 
-//    var gson = Gson()
-//
-//    @TypeConverter
-//    fun abbreviationsToString(abbreviations: Abbreviations): String = gson.toJson(abbreviations)
-//
-//    @TypeConverter
-//    fun stringToAbbreviations(data: String): Abbreviations {
-//        val listType = object : TypeToken<Abbreviations>() {}.type
-//        return gson.fromJson(data, listType)
-//    }
+    @TypeConverter
+    fun stringToAbbreviations(data: String): DefinitionsModel {
+        val listType = object : TypeToken<DefinitionsModel>() {}.type
+        return gson.fromJson(data, listType)
+    }
 }

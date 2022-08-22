@@ -48,6 +48,7 @@ class AppModule {
     @Singleton
     fun provideRepository(
         apiDetails: ApiDetails,
-        database: DefinitionsDatabase
-    ):Repository = RepositoryImp(apiDetails,database)
+        definitionsDao: DefinitionsDao
+//        database: DefinitionsDatabase
+    ):Repository = RepositoryImp(apiDetails,definitionsDao)
 }

@@ -1,14 +1,13 @@
 package com.example.abbreviationappassignmentaren.ui
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import com.example.abbreviationappassignmentaren.database.DefinitionsEntity
 import com.example.abbreviationappassignmentaren.models.DefinitionsItemModel
 import com.example.abbreviationappassignmentaren.models.DefinitionsModel
 import com.example.abbreviationappassignmentaren.repositories.Repository
-import com.example.abbreviationappassignmentaren.util.Resource
+import com.example.abbreviationappassignmentaren.util.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -19,54 +18,54 @@ class MainViewModel @Inject constructor(
     val repository: Repository
 ):ViewModel() {
 
-    val remote: MutableLiveData<Resource<DefinitionsModel>> = MutableLiveData()
+    private var _abbreviationsLiveData: MutableLiveData<UiState> =
+        MutableLiveData(UiState.Loading)
+    val abbreviationsLiveData: LiveData<UiState> get() = _abbreviationsLiveData
 
-    var local: LiveData<DefinitionsItemModel> = MutableLiveData()
-    var local2: MutableLiveData<Resource<DefinitionsItemModel>> = MutableLiveData()
+    lateinit var readAbbreviations: LiveData<List<DefinitionsEntity>>
+
+    private fun readAbbreviations(shortForm: String) {
+        readAbbreviations = repository.getDefFromDatabase(shortForm).asLiveData()
+    }
 
     fun searchDef(searchTerm: String) {
-        getDefFromDatabase(searchTerm)
-        local2.postValue(handleLocalResponse(local))
-        if (local2.value is Resource.Error) {
-            getDefFromApi(searchTerm)
-            local2.postValue(handleLocalResponse(local))
-        }
+        getDefFromApi(searchTerm)
+        readAbbreviations(searchTerm)
+//        if (readAbbreviations.value?.isEmpty() == true){
+//            getDefFromApi(searchTerm)
+//        }
+    }
+
+    private fun getDefFromDatabase(searchTerm: String) {
+        readAbbreviations = repository.getDefFromDatabase(searchTerm).asLiveData()
     }
 
     private fun getDefFromApi(searchTerm: String) =
         viewModelScope.launch(Dispatchers.IO) {
-            remote.postValue(Resource.Loading())
             val response = repository.getDefFromApi(searchTerm)
-            remote.postValue(handleRemoteResponse(response))
-        }
-
-    private fun handleRemoteResponse(response: Response<DefinitionsModel>): Resource<DefinitionsModel>{
-        if (response.isSuccessful) {
-            response.body()?.let { resultResponse ->
-                insertDefToDatabase(resultResponse[0])
-                return Resource.Success(resultResponse)
+            if(response.isSuccessful){
+                _abbreviationsLiveData.postValue(
+                    response.body()?.let {
+                        if (response.body()!!.size > 0) addDataToDatabase(it)
+                        UiState.Success(
+                            response.body() as DefinitionsModel
+                        )
+                    }
+                )
+            } else {
+                _abbreviationsLiveData.postValue(
+                    UiState.Error(
+                        Throwable(
+                            response.message()
+                        )
+                    )
+                )
             }
         }
-        return Resource.Error(response.message())
-    }
-
-    private fun handleLocalResponse(data: LiveData<DefinitionsItemModel>): Resource<DefinitionsItemModel>{
-        if (!data.value?.sf.isNullOrEmpty()){
-            data.value?. let { result ->
-                return (Resource.Success(result))
-            }
+    private fun addDataToDatabase(abbreviations: DefinitionsModel) {
+        CoroutineScope(Dispatchers.IO).launch {
+            repository.insertDefToDatabase(DefinitionsEntity(abbreviations))
         }
-        return (Resource.Error("No local data found"))
+//        insertAbbreviations(abbreviationsEntity)
     }
-
-    private fun insertDefToDatabase(definitionsItemModel: DefinitionsItemModel) =
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.insertDefToDatabase(definitionsItemModel)
-            getDefFromDatabase(definitionsItemModel.sf)
-        }
-
-    private fun getDefFromDatabase(searchTerm: String) {
-        local = repository.getDefFromDatabase(searchTerm)
-    }
-
 }
