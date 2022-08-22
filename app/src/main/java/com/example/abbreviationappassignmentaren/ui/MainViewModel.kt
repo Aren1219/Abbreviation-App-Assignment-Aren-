@@ -22,34 +22,21 @@ class MainViewModel @Inject constructor(
         MutableLiveData(UiState.Loading)
     val abbreviationsLiveData: LiveData<UiState> get() = _abbreviationsLiveData
 
-    lateinit var readAbbreviations: LiveData<List<DefinitionsEntity>>
+    var readAbbreviations: LiveData<List<DefinitionsEntity>> = MutableLiveData()
 
-    private fun readAbbreviations(shortForm: String) {
+    fun readAbbreviations(shortForm: String) {
         readAbbreviations = repository.getDefFromDatabase(shortForm).asLiveData()
     }
 
-    fun searchDef(searchTerm: String) {
-        getDefFromApi(searchTerm)
-        readAbbreviations(searchTerm)
-//        if (readAbbreviations.value?.isEmpty() == true){
-//            getDefFromApi(searchTerm)
-//        }
-    }
-
-    private fun getDefFromDatabase(searchTerm: String) {
-        readAbbreviations = repository.getDefFromDatabase(searchTerm).asLiveData()
-    }
-
-    private fun getDefFromApi(searchTerm: String) =
+    fun getDefFromApi(searchTerm: String) =
         viewModelScope.launch(Dispatchers.IO) {
             val response = repository.getDefFromApi(searchTerm)
             if(response.isSuccessful){
                 _abbreviationsLiveData.postValue(
                     response.body()?.let {
                         if (response.body()!!.size > 0) addDataToDatabase(it)
-                        UiState.Success(
-                            response.body() as DefinitionsModel
-                        )
+                        readAbbreviations(searchTerm)
+                        UiState.Success(response.body() as DefinitionsModel)
                     }
                 )
             } else {

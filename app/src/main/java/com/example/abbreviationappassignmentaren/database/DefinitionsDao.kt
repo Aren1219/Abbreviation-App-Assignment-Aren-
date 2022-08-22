@@ -14,7 +14,7 @@ interface DefinitionsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDefinitions(definitionsEntity: DefinitionsEntity)
 
-    @Query("SELECT * FROM Definitions WHERE sf LIKE :searchTerm")
+    @Query("SELECT * FROM Definitions WHERE sf = :searchTerm")
     fun getSearchResult(searchTerm: String): Flow<List<DefinitionsEntity>>
 
 }

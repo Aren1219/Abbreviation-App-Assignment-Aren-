@@ -22,41 +22,23 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnMain.setOnClickListener{
 
-            viewModel.searchDef(binding.etMain.text.toString())
+            viewModel.readAbbreviations.removeObservers(this@MainActivity)
 
-            viewModel.readAbbreviations.observe(this,Observer{local ->
-                if(local.isNotEmpty()){
+            viewModel.readAbbreviations(binding.etMain.text.toString())
+            
+            viewModel.readAbbreviations.observe(this@MainActivity,Observer { local ->
+                if (local.isNotEmpty()) {
                     binding.tvAcronym.text = local[0].sf
                     binding.tvDefinitions.text = local[0].lf
                 } else {
-                    viewModel.abbreviationsLiveData.observe(this,Observer{state ->
-                        when(state){
-                            is UiState.Success -> {
-                                binding.tvAcronym.text = state.abbrevResponse[0].sf
-                                binding.tvDefinitions.text = state.abbrevResponse[0].lfs.toString()
-                            }
-                            else -> {}
-                        }
-                    })
-
-                    binding.tvAcronym.text = "Error"
-                    binding.tvDefinitions.text = "Error"
+                    viewModel.getDefFromApi(binding.etMain.text.toString())
+                    binding.tvAcronym.text = ""
+                    binding.tvDefinitions.text = ""
                 }
             })
+
+            if (binding.etMain.text.isNotBlank())
+                viewModel.readAbbreviations(binding.etMain.text.toString())
         }
-
-
-
-//        viewModel.local2.observe(this,Observer{ local ->
-//            when (local) {
-//                is Resource.Success -> {
-//                    binding.tvAcronym.text = local.data?.sf.toString()
-//                    binding.tvDefinitions.text = local.data?.lfs.toString()
-//                } else -> {
-//                    binding.tvAcronym.text = "Error"
-//                    binding.tvDefinitions.text = "Error"
-//                }
-//            }
-//        })
     }
 }
