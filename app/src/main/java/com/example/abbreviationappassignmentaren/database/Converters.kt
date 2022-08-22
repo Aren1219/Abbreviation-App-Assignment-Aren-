@@ -2,6 +2,7 @@ package com.example.abbreviationappassignmentaren.database
 
 import androidx.room.TypeConverter
 import com.example.abbreviationappassignmentaren.models.LfModel
+import com.google.gson.Gson
 
 class Converters {
 
@@ -28,4 +29,15 @@ class Converters {
         }
         return list
     }
+
+//    var gson = Gson()
+//
+//    @TypeConverter
+//    fun abbreviationsToString(abbreviations: Abbreviations): String = gson.toJson(abbreviations)
+//
+//    @TypeConverter
+//    fun stringToAbbreviations(data: String): Abbreviations {
+//        val listType = object : TypeToken<Abbreviations>() {}.type
+//        return gson.fromJson(data, listType)
+//    }
 }

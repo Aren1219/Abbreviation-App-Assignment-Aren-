@@ -20,6 +20,7 @@ class MainViewModel @Inject constructor(
 ):ViewModel() {
 
     val remote: MutableLiveData<Resource<DefinitionsModel>> = MutableLiveData()
+
     var local: LiveData<DefinitionsItemModel> = MutableLiveData()
     var local2: MutableLiveData<Resource<DefinitionsItemModel>> = MutableLiveData()
 
