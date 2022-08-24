@@ -2,14 +2,17 @@ package com.example.abbreviationappassignmentaren.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
-import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.abbreviationappassignmentaren.adapters.ItemAdapter
 import com.example.abbreviationappassignmentaren.databinding.ActivityMainBinding
-import com.example.abbreviationappassignmentaren.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private val TAG = "MainActivity"
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel by viewModels<MainViewModel>()
@@ -19,26 +22,26 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.rvMain.layoutManager = LinearLayoutManager(this)
+
+        val editText = binding.etMain.text
 
         binding.btnMain.setOnClickListener{
-
             viewModel.readAbbreviations.removeObservers(this@MainActivity)
-
-            viewModel.readAbbreviations(binding.etMain.text.toString())
-            
-            viewModel.readAbbreviations.observe(this@MainActivity,Observer { local ->
-                if (local.isNotEmpty()) {
-                    binding.tvAcronym.text = local[0].sf
-                    binding.tvDefinitions.text = local[0].lf
+            viewModel.readAbbreviations.observe(this@MainActivity) { local ->
+                if (local != null) {
+                    Log.d("MainActivity", "Observe not empty: ${local.sf}")
+                    binding.rvMain.adapter = ItemAdapter(local.definitionsModel)
+                    binding.tvAcronym.text = local.sf
                 } else {
-                    viewModel.getDefFromApi(binding.etMain.text.toString())
-                    binding.tvAcronym.text = ""
-                    binding.tvDefinitions.text = ""
+                    Log.d("MainActivity", "Observe empty")
+                    viewModel.getDefFromApi(editText.toString())
+                    binding.tvAcronym.text = "Error"
                 }
-            })
+            }
 
-            if (binding.etMain.text.isNotBlank())
-                viewModel.readAbbreviations(binding.etMain.text.toString())
+            Log.d(TAG,"Btn pressed")
+            viewModel.getDatabaseData(editText.toString())
         }
     }
 }

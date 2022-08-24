@@ -19,7 +19,7 @@ class RepositoryImp @Inject constructor(
     override suspend fun getDefFromApi(searchTerm: String): Response<DefinitionsModel> =
         apiDetails.searchWithSf(searchTerm)
 
-    override fun getDefFromDatabase(searchTerm: String): Flow<List<DefinitionsEntity>> =
+    override fun getDefFromDatabase(searchTerm: String): Flow<DefinitionsEntity> =
         dao.getSearchResult(searchTerm)
 
     override suspend fun insertDefToDatabase(definitionsEntity: DefinitionsEntity) =
