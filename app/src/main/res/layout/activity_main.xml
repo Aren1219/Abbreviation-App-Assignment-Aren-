@@ -21,8 +21,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:maxLines="1"
-            android:inputType="textCapCharacters" />
+            android:inputType="textCapCharacters"
+            android:maxLines="1" />
 
         <Button
             android:id="@+id/btnMain"
@@ -41,18 +41,43 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
-        tools:text="ABC"/>
+        tools:text="ABC" />
 
-    <TextView
-        android:id="@+id/tvDefinitions"
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        />-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMain"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:textSize="20sp"
+        tools:listitem="@layout/item"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvAcronym"
-        app:layout_constraintVertical_weight="1"
-        tools:text="definitions" />
+        app:layout_constraintTop_toBottomOf="@+id/tvAcronym" />
+
+
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintHorizontal_bias="0.5"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/tvAcronym"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        tools:layout_editor_absoluteY="20dp">-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tvDefinitions"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:textSize="20sp"-->
+<!--            tools:text="definitions" />-->
+
+<!--    </ScrollView>-->
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
