@@ -12,6 +12,8 @@ import com.example.abbreviationappassignmentaren.util.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -70,20 +72,25 @@ class MainViewModelTest{
                 .thenReturn(getRoomData())
             viewModel.getDatabaseData("AA")
             viewModel.readAbbreviations.observeForever{
-                assertEquals(getRoomData().asLiveData(),it)
+                assertEquals(getRoomData(),it)
             }
         }
     }
 
     private fun getRoomData(): Flow<DefinitionsEntity> =
-        MutableStateFlow(DefinitionsEntity(getDefinitionsModel()))
+        MutableStateFlow(DefinitionsEntity(
+            getDefinitionsModel()
+//            DefinitionsModel()
+        ))
 
     private fun getDefinitionsModel(): DefinitionsModel {
         val definitionsModel = DefinitionsModel()
-        definitionsModel.add(DefinitionsItemModel(
-            listOf(LfModel(0,"",0, listOf(VarModel(0,"",0)))),
+        definitionsModel.add(
+            DefinitionsItemModel(
+                listOf(LfModel(0,"",0, listOf(VarModel(0,"",0)))),
             ""
-        ))
+            )
+        )
         return definitionsModel
     }
 

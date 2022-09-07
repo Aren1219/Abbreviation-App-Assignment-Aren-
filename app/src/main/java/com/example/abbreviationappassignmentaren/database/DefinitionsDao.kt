@@ -16,5 +16,7 @@ interface DefinitionsDao {
 
     @Query("SELECT * FROM Definitions WHERE sf Like :searchTerm")
     fun getSearchResult(searchTerm: String): Flow<DefinitionsEntity>
+//
+//    @Query("SELECT * ")
 
 }

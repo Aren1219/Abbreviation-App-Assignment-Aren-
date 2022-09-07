@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,19 +27,27 @@ class MainViewModel @Inject constructor(
         MutableStateFlow(UiState.Loading)
     val abbreviationsLiveData: StateFlow<UiState> get() = _abbreviationsLiveData
 
-    var readAbbreviations: LiveData<DefinitionsEntity> = MutableLiveData()
+    lateinit var readAbbreviations: LiveData<DefinitionsEntity>
 
-    var job:Job? = null
+    fun search(searchTerm: String) {
+        if (searchTerm.isBlank()) return
+        getDatabaseData(searchTerm)
+        viewModelScope.launch(Dispatchers.IO) {
+            if (readAbbreviations.value == null){
+                getDefFromApi(searchTerm)
+                getDatabaseData(searchTerm)
+            }
+        }
+    }
+
 
     fun getDatabaseData(shortForm: String) {
-        if (shortForm.isNotBlank())
-            readAbbreviations = repository.getDefFromDatabase(shortForm.uppercase()).asLiveData()
+        readAbbreviations = repository.getDefFromDatabase(shortForm).asLiveData()
 //        Log.d(TAG,"liveData: ${readAbbreviations.value?.sf}")
     }
 
-    fun getDefFromApi(searchTerm: String) {
-        job?.cancel()
-        job = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun getDefFromApi(searchTerm: String) {
+        viewModelScope.launch(Dispatchers.IO) {
             _abbreviationsLiveData.value = UiState.Loading
             val response = repository.getDefFromApi(searchTerm)
             if(response.isSuccessful){
@@ -50,7 +59,6 @@ class MainViewModel @Inject constructor(
                         UiState.Success(response.body() as DefinitionsModel)
                     }!!
                 )
-//                readAbbreviations(searchTerm)
             } else {
                 _abbreviationsLiveData.value = (
                     UiState.Error(
@@ -64,8 +72,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun addDataToDatabase(abbreviations: DefinitionsModel) {
-        job?.cancel()
-        job = CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             repository.insertDefToDatabase(DefinitionsEntity(abbreviations))
             getDatabaseData(abbreviations[0].sf)
         }
