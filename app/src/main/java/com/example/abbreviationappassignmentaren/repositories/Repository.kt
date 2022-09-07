@@ -11,7 +11,7 @@ interface Repository {
 
     suspend fun getDefFromApi(searchTerm: String) : Response<DefinitionsModel>
 
-    fun getDefFromDatabase(searchTerm: String) : Flow<DefinitionsEntity>
+    suspend fun getDefFromDatabase(searchTerm: String) : DefinitionsEntity
 
     suspend fun insertDefToDatabase(definitionsEntity: DefinitionsEntity)
 

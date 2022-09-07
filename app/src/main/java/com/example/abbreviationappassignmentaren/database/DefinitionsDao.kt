@@ -15,7 +15,7 @@ interface DefinitionsDao {
     suspend fun insertDefinitions(definitionsEntity: DefinitionsEntity)
 
     @Query("SELECT * FROM Definitions WHERE sf Like :searchTerm")
-    fun getSearchResult(searchTerm: String): Flow<DefinitionsEntity>
+    suspend fun getSearchResult(searchTerm: String): DefinitionsEntity
 //
 //    @Query("SELECT * ")
 

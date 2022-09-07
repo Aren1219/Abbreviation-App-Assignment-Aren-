@@ -27,55 +27,51 @@ class MainViewModel @Inject constructor(
         MutableStateFlow(UiState.Loading)
     val abbreviationsLiveData: StateFlow<UiState> get() = _abbreviationsLiveData
 
-    lateinit var readAbbreviations: LiveData<DefinitionsEntity>
+    var readAbbreviations: MutableLiveData<DefinitionsEntity?> = MutableLiveData()
 
     fun search(searchTerm: String) {
         if (searchTerm.isBlank()) return
-        getDatabaseData(searchTerm)
         viewModelScope.launch(Dispatchers.IO) {
+            getDatabaseData(searchTerm)
             if (readAbbreviations.value == null){
                 getDefFromApi(searchTerm)
-                getDatabaseData(searchTerm)
             }
         }
     }
 
 
-    fun getDatabaseData(shortForm: String) {
-        readAbbreviations = repository.getDefFromDatabase(shortForm).asLiveData()
+    suspend fun getDatabaseData(shortForm: String) {
+        readAbbreviations.postValue(repository.getDefFromDatabase(shortForm))
 //        Log.d(TAG,"liveData: ${readAbbreviations.value?.sf}")
     }
 
     private suspend fun getDefFromApi(searchTerm: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _abbreviationsLiveData.value = UiState.Loading
-            val response = repository.getDefFromApi(searchTerm)
-            if(response.isSuccessful){
-//                Log.d(TAG,"api response success")
-                if (response.body()!!.size > 0)
-                    addDataToDatabase(response.body()!!)
-                _abbreviationsLiveData.value = (
-                    response.body()?.let {
-                        UiState.Success(response.body() as DefinitionsModel)
-                    }!!
-                )
+        _abbreviationsLiveData.value = UiState.Loading
+        val response = repository.getDefFromApi(searchTerm)
+        if(response.isSuccessful){
+            Log.d(TAG,"api response success")
+            if (response.body()!!.size > 0) {
+                addDataToDatabase(response.body()!!)
+                _abbreviationsLiveData.value = (response.body()?.let {
+                    UiState.Success(response.body() as DefinitionsModel)
+                }!!)
+                getDatabaseData(searchTerm)
             } else {
-                _abbreviationsLiveData.value = (
-                    UiState.Error(
-                        Throwable(
-                            response.message()
-                        )
-                    )
-                )
+                _abbreviationsLiveData.value = UiState.Error("Acronym not found")
             }
+        } else {
+            Log.d(TAG,"api response fail")
+            _abbreviationsLiveData.value = (
+                UiState.Error(
+                    response.message()
+                )
+            )
         }
     }
 
-    private fun addDataToDatabase(abbreviations: DefinitionsModel) {
-        CoroutineScope(Dispatchers.IO).launch {
-            repository.insertDefToDatabase(DefinitionsEntity(abbreviations))
-            getDatabaseData(abbreviations[0].sf)
-        }
+    private suspend fun addDataToDatabase(abbreviations: DefinitionsModel) {
+        repository.insertDefToDatabase(DefinitionsEntity(abbreviations))
+        getDatabaseData(abbreviations[0].sf)
 //        insertAbbreviations(abbreviationsEntity)
     }
 }
